@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import { Server as HttpServer } from "http";
 import { ISocketManager } from "../interfaces/ISocketManager";
 import { IRoomManager } from "../interfaces/IRoomManager";
+import { IUserManager } from "../interfaces/IUserManager";
 
 
 export class SocketManager implements ISocketManager {
@@ -11,7 +12,8 @@ export class SocketManager implements ISocketManager {
 
     private constructor(
         server: HttpServer,
-        roomManager: IRoomManager
+        roomManager: IRoomManager,
+        userManager: IUserManager
     ) {
         this.io = new Server(server,{
             cors: {
@@ -19,24 +21,26 @@ export class SocketManager implements ISocketManager {
             }
         });
 
-        this.connect(roomManager);
+        this.connect(roomManager, userManager);
     }
 
     // -- singleton  -- --
-    public static getInstance(server: HttpServer, roomManager: IRoomManager): SocketManager {
+    public static getInstance(server: HttpServer, roomManager: IRoomManager, userManager: IUserManager): SocketManager {
         if (!SocketManager.instance) {
-            SocketManager.instance = new SocketManager(server, roomManager);
+            SocketManager.instance = new SocketManager(server, roomManager, userManager);
         }   
         return SocketManager.instance;
     }
 
 
 
-    connect() {
+    connect(roomManager: IRoomManager, userManager: IUserManager) {
         this.io.on("connection", (socket) => {
 
             console.log("a user connected");
             // console.log(socket);
+            const user = userManager.createUser(socket.id, "newuser");
+            console.log("user added")
 
 
             socket.on("disconnect", () => {

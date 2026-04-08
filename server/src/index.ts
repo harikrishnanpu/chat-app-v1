@@ -3,13 +3,15 @@ import http from "node:http";
 import { Server } from "socket.io";
 import { SocketManager } from "./managers/socket.manager";
 import { RoomManager } from "./managers/room.manager";
+import { UserManager } from "./managers/user.manager";
 
 const app = express();
 const server = http.createServer(app);
 
 const roomManager = new RoomManager();
+const userManager = new UserManager();
 
-SocketManager.getInstance(server, roomManager);
+SocketManager.getInstance(server, roomManager, userManager);
 
 
 

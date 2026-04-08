@@ -4,11 +4,11 @@ import { IRoomManager, Room } from "../interfaces/IRoomManager";
 
 export class RoomManager implements IRoomManager { 
 
-    private readonly rooms: Map<string, Room>
+    private readonly _rooms: Map<string, Room>
 
     constructor(
     ){
-        this.rooms = new Map();
+        this._rooms = new Map();
     }
 
     private generateId(): string {
@@ -21,13 +21,13 @@ export class RoomManager implements IRoomManager {
             id: this.generateId(),
             userIds: [userId],
         };
-        this.rooms.set(room.id, room);
+        this._rooms.set(room.id, room);
         return room;
     }
 
 
     public joinRoom(roomId: string, userId: string): Room | null {
-        const room = this.rooms.get(roomId);
+        const room = this._rooms.get(roomId);
         if (!room) {
             return null;
         }
@@ -37,23 +37,23 @@ export class RoomManager implements IRoomManager {
 
 
     public leaveRoom(roomId: string, userId: string): void {
-        const room = this.rooms.get(roomId);
+        const room = this._rooms.get(roomId);
         if (!room) {
             return;
         }
         room.userIds = room.userIds.filter(id => id !== userId);
         if (room.userIds.length === 0) {
-            this.rooms.delete(roomId);
+            this._rooms.delete(roomId);
         }
     }
 
     public getRoom(roomId: string): Room | null {
-        return this.rooms.get(roomId) ?? null;
+        return this._rooms.get(roomId) ?? null;
     }
 
     
     public isFull(roomId: string): boolean {
-        const room = this.rooms.get(roomId);
+        const room = this._rooms.get(roomId);
         if (!room) {
             return false;
         }
