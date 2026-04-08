@@ -1,14 +1,17 @@
 import { Server } from "socket.io";
 import { Server as HttpServer } from "http";
+import { ISocketManager } from "../interfaces/ISocketManager";
+import { IRoomManager } from "../interfaces/IRoomManager";
 
 
-export class SocketManager {
+export class SocketManager implements ISocketManager {
 
-    private io: Server;
+    private readonly io: Server;
     public static instance: SocketManager;
 
     private constructor(
-        server: HttpServer
+        server: HttpServer,
+        roomManager: IRoomManager
     ) {
         this.io = new Server(server,{
             cors: {
@@ -16,13 +19,13 @@ export class SocketManager {
             }
         });
 
-        this.connect();
+        this.connect(roomManager);
     }
 
     // -- singleton  -- --
-    public static getInstance(server: HttpServer): SocketManager {
+    public static getInstance(server: HttpServer, roomManager: IRoomManager): SocketManager {
         if (!SocketManager.instance) {
-            SocketManager.instance = new SocketManager(server);
+            SocketManager.instance = new SocketManager(server, roomManager);
         }   
         return SocketManager.instance;
     }
@@ -43,6 +46,11 @@ export class SocketManager {
         });
     }
 
+    
+
+    public getIO(): Server {
+        return this.io;
+    }
 
 
 
