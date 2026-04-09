@@ -4,7 +4,6 @@ import { IRoomManager } from "../interfaces/IRoomManager";
 import { SOCKET_EVENTS } from "../contants/socket.events.constants";
 
 
-
 interface IOffer {
     roomId: string;
     sdp: RTCSessionDescriptionInit;

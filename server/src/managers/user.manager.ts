@@ -10,11 +10,12 @@ export class UserManager implements IUserManager {
     constructor() {
 
         this._users = new Map();
-
+        
     }
-
-
+    
+    
     createUser(user: IUser): IUser {
+        console.log(this._users)
         this._users.set(user.id, user);
         return user;
     }

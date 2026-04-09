@@ -9,7 +9,7 @@ export const router = createBrowserRouter([
       element: <Landing /> ,
     },
     {
-      path: "/room/:username",
+      path: "/room/:roomId",
       element: <Room /> ,
     }
 ]);

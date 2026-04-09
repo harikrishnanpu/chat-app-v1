@@ -1,20 +1,32 @@
 import express from "express";
 import http from "node:http";
-import { Server } from "socket.io";
 import { SocketManager } from "./managers/socket.manager";
-import { RoomManager } from "./managers/room.manager";
-import { UserManager } from "./managers/user.manager";
-import { RoomHandler } from "./handlers/room.handler";
-import { SignalHandler } from "./handlers/signal.handler";
+import { Server } from "socket.io";
+import cors from "cors";
 
 const app = express();
+app.use(cors());
 const server = http.createServer(app);
 
+const io = new Server(server,{
+    cors: {
+        origin: "*"
+    }
+});
 
 
 
+SocketManager.getInstance(io);
+
+ 
 app.get("/", (req, res) => {
     res.send("Hello World");
+});
+
+app.post("/room", (req, res) => {
+    console.log(req.body);
+    const roomId = Math.floor(Math.random() * 1000000);
+    res.json({ roomId: roomId.toString() });
 });
 
 

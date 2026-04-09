@@ -5,7 +5,6 @@ import { IUserManager } from "../interfaces/IUserManager";
 import { Socket } from "socket.io";
 
 
-
 export class RoomHandler implements IRoomHandler { 
 
   constructor(
@@ -55,7 +54,7 @@ export class RoomHandler implements IRoomHandler {
     }
 
     if(this.roomManager.isRoomFull(roomId)) {
-      this.socket.emit(SOCKET_EVENTS.ERROR, "Room is full");
+      this.socket.emit(SOCKET_EVENTS.ERROR, { message: "Room is full" });
       return;
   }
 

@@ -2,10 +2,8 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "type": "module",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npm run build && npm run start",
     "build": "tsc",
     "dev": "tsx watch src/index.ts"
@@ -15,11 +13,16 @@
   "license": "ISC",
   "packageManager": "pnpm@10.33.0",
   "dependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "cors": "^2.8.6",
     "express": "^5.2.1",
+    "inversify": "^7.11.0",
+    "reflect-metadata": "^0.2.2",
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
+    "@types/node": "^25.5.2",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2"
   }

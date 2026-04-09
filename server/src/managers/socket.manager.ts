@@ -1,9 +1,8 @@
-import { Socket } from "socket.io";
-import { IRoomManager } from "../interfaces/IRoomManager";
-import { ISignalHandler } from "../interfaces/ISignalHandler";
-import { SOCKET_EVENTS } from "../contants/socket.events.constants";
-import { IUserManager } from "../interfaces/IUserManager";
-import { IRoomHandler } from "../interfaces/IRoomHandler";
+import { Server, Socket } from "socket.io";
+import { RoomHandler } from "../handlers/room.handler";
+import { SignalHandler } from "../handlers/signal.handler";
+import { UserManager } from "./user.manager";
+import { RoomManager } from "./room.manager";
 
 
 
@@ -11,27 +10,39 @@ import { IRoomHandler } from "../interfaces/IRoomHandler";
 export class SocketManager { 
 
     private static _instance: SocketManager;
+    private _roomManager: RoomManager;
+    private _userManager: UserManager;
 
 
     private constructor(
-        private _socket: Socket,
-        private _roomHandler: IRoomHandler,
-        private _signalHandler: ISignalHandler,
-        private _userManager: IUserManager,
+        private _io: Server
     ){
+
+        this._roomManager =  new RoomManager();
+        this._userManager = new UserManager()
+
        this._init();
     }
 
-    public static getInstance(socket: Socket, roomHandler: IRoomHandler, signalHandler: ISignalHandler, userManager: IUserManager): SocketManager {
+    // --singleton --
+    public static getInstance(io: Server): SocketManager {
         if(!SocketManager._instance) {
-            SocketManager._instance = new SocketManager(socket, roomHandler, signalHandler, userManager);
+            console.log("SocketManager initialised -- ");
+            SocketManager._instance = new SocketManager(io);
         }
         return SocketManager._instance;
     }
 
     private _init(): void {
 
-        this._socket.on("connection", (socket: Socket) => {
+        this._io.on("connection", (socket: Socket) => {
+
+            console.log("Socket connected- ", socket.id);
+
+
+            const roomHandler = new RoomHandler(this._roomManager, this._userManager, socket);
+            const signalHandler = new SignalHandler(socket, this._roomManager);
+
 
             this._userManager.createUser({
                 id: socket.id,
@@ -39,9 +50,18 @@ export class SocketManager {
                 roomId: null
             });
 
+            roomHandler.registerEvents();
+            signalHandler.registerEvents();
 
-            this._roomHandler.registerEvents();
-            this._signalHandler.registerEvents();
+
+            socket.on("disconnect", () => {
+                const currentUser = this._userManager.getUser(socket.id);
+                if(!currentUser) return;
+                if(!currentUser.roomId) return;
+                this._userManager.removeUser(socket.id);
+                this._roomManager.leaveRoom(currentUser.roomId, currentUser.id);
+            });
+
         });
 
 
