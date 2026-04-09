@@ -1,65 +1,61 @@
-import { IRoomManager, Room } from "../interfaces/IRoomManager";
+import { IRoom, IRoomManager } from "../interfaces/IRoomManager";
 
 
 
-export class RoomManager implements IRoomManager { 
+const MAX_USERS_PER_ROOM = 2;
 
-    private readonly _rooms: Map<string, Room>
 
-    constructor(
-    ){
+export class RoomManager implements IRoomManager  {
+
+    private _rooms: Map<string, IRoom>;
+
+
+    constructor() {
         this._rooms = new Map();
     }
 
-    private generateId(): string {
-        return Math.floor(Math.random() * 1000).toString();
-    }
-
-
-    public createRoom(userId: string): Room {
-        const room = {
-            id: this.generateId(),
-            userIds: [userId],
-        };
+    createRoom(room: IRoom): IRoom {
         this._rooms.set(room.id, room);
-        return room;
+        return room;    
     }
 
-
-    public joinRoom(roomId: string, userId: string): Room | null {
+    joinRoom(roomId: string, userId: string): void {
         const room = this._rooms.get(roomId);
-        if (!room) {
-            return null;
-        }
-        room.userIds.push(userId);
-        return room;
-    }
-
-
-    public leaveRoom(roomId: string, userId: string): void {
-        const room = this._rooms.get(roomId);
-        if (!room) {
-            return;
-        }
-        room.userIds = room.userIds.filter(id => id !== userId);
-        if (room.userIds.length === 0) {
-            this._rooms.delete(roomId);
+        if (room) {
+            room.userIds.push(userId);
         }
     }
-
-    public getRoom(roomId: string): Room | null {
-        return this._rooms.get(roomId) ?? null;
-    }
-
     
-    public isFull(roomId: string): boolean {
-        const room = this._rooms.get(roomId);
-        if (!room) {
-            return false;
+        getRoom(roomId: string): IRoom | null {
+            return this._rooms.get(roomId) ?? null;
         }
-        return room.userIds.length >= 2;
+
+
+
+
+    leaveRoom(roomId: string, userId: string): void {
+        const room = this._rooms.get(roomId);
+        if (room) {
+            room.userIds = room.userIds.filter(id => id !== userId);
+        }
     }
 
+
+    getUser2(roomId: string, userId: string): string | null {
+        const room = this._rooms.get(roomId);
+        if (room) {
+            return room.userIds.find(id => id !== userId) ?? null;
+        }
+        return null;
+    }
+
+    isRoomFull(roomId: string): boolean {
+        const room = this._rooms.get(roomId);
+        if (room) {
+            return room.userIds.length >= MAX_USERS_PER_ROOM;
+        }
+        return false;
+    }
 
 
 }

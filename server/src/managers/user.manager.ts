@@ -1,37 +1,37 @@
-import { IUserManager, User } from "../interfaces/IUserManager";
+import { IUser, IUserManager } from "../interfaces/IUserManager";
 
 
 
-export class UserManager implements IUserManager { 
+export class UserManager implements IUserManager {
 
-    private readonly _users: Map<string, User>
+    private _users: Map<string, IUser>;
 
-    constructor (
-    ){
+
+    constructor() {
+
         this._users = new Map();
+
     }
 
-    public getUser(userId: string): User | null {
-        console.log("getUser", userId);
-        return this._users.get(userId) ?? null;
-    }
 
-    public createUser(socketId: string, username: string): User {
-        const user: User = {
-            id: socketId,
-            username,
-            roomId: null,
-        };
-
-        this._users.set(socketId, user);
-        console.log("user added", user);
+    createUser(user: IUser): IUser {
+        this._users.set(user.id, user);
         return user;
     }
 
-    public removeUser(userId: string): void {
+    removeUser(userId: string): void {
         this._users.delete(userId);
-        console.log("user removed", userId);
     }
 
+    getUser(userId: string): IUser | null {
+        return this._users.get(userId) ?? null;
+    }
+
+    setRoom(userId: string, roomId: string | null): void {
+        const user = this.getUser(userId);
+        if (user) {
+            user.roomId = roomId;
+        }
+    }
 
 }

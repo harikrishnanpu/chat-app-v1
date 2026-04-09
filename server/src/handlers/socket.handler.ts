@@ -1,4 +1,4 @@
-import { Server } from "socket.io";
+import { Server, Socket } from "socket.io";
 
 
 
@@ -12,7 +12,7 @@ export class SocketHandler {
     
     handleConnection(socket: Socket) {
         console.log("a user connected");
-    
+        
     }
 
 

@@ -1,61 +1,51 @@
-import { Server } from "socket.io";
-import { Server as HttpServer } from "http";
-import { ISocketManager } from "../interfaces/ISocketManager";
+import { Socket } from "socket.io";
 import { IRoomManager } from "../interfaces/IRoomManager";
+import { ISignalHandler } from "../interfaces/ISignalHandler";
+import { SOCKET_EVENTS } from "../contants/socket.events.constants";
 import { IUserManager } from "../interfaces/IUserManager";
+import { IRoomHandler } from "../interfaces/IRoomHandler";
 
 
-export class SocketManager implements ISocketManager {
 
-    private readonly io: Server;
-    public static instance: SocketManager;
+
+export class SocketManager { 
+
+    private static _instance: SocketManager;
+
 
     private constructor(
-        server: HttpServer,
-        roomManager: IRoomManager,
-        userManager: IUserManager
-    ) {
-        this.io = new Server(server,{
-            cors: {
-                origin: "*"
-            }
-        });
-
-        this.connect(roomManager, userManager);
+        private _socket: Socket,
+        private _roomHandler: IRoomHandler,
+        private _signalHandler: ISignalHandler,
+        private _userManager: IUserManager,
+    ){
+       this._init();
     }
 
-    // -- singleton  -- --
-    public static getInstance(server: HttpServer, roomManager: IRoomManager, userManager: IUserManager): SocketManager {
-        if (!SocketManager.instance) {
-            SocketManager.instance = new SocketManager(server, roomManager, userManager);
-        }   
-        return SocketManager.instance;
+    public static getInstance(socket: Socket, roomHandler: IRoomHandler, signalHandler: ISignalHandler, userManager: IUserManager): SocketManager {
+        if(!SocketManager._instance) {
+            SocketManager._instance = new SocketManager(socket, roomHandler, signalHandler, userManager);
+        }
+        return SocketManager._instance;
     }
 
+    private _init(): void {
 
+        this._socket.on("connection", (socket: Socket) => {
 
-    connect(roomManager: IRoomManager, userManager: IUserManager) {
-        this.io.on("connection", (socket) => {
-
-            console.log("a user connected");
-            // console.log(socket);
-            const user = userManager.createUser(socket.id, "newuser");
-            console.log("user added")
-
-
-            socket.on("disconnect", () => {
-                console.log("a user disconnected");
+            this._userManager.createUser({
+                id: socket.id,
+                username: socket.id,
+                roomId: null
             });
 
+
+            this._roomHandler.registerEvents();
+            this._signalHandler.registerEvents();
         });
+
+
     }
-
-    
-
-    public getIO(): Server {
-        return this.io;
-    }
-
 
 
 }
