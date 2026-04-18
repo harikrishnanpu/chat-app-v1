@@ -22,7 +22,7 @@ export class RoomManager implements IRoomManager  {
     joinRoom(roomId: string, userId: string): void {
         console.log("Joinroom: ", roomId)
         const room = this._rooms.get(roomId);
-        if (room) {
+        if (room && !room.userIds.includes(userId)) {
             room.userIds.push(userId);
         }
     }

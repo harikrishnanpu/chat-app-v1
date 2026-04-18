@@ -9,6 +9,11 @@ interface IOffer {
     sdp: RTCSessionDescriptionInit;
 }
 
+interface IIcePayload {
+    roomId: string;
+    candidate: RTCIceCandidateInit | null;
+}
+
 
 export class SignalHandler implements ISignalHandler { 
 
@@ -28,6 +33,9 @@ export class SignalHandler implements ISignalHandler {
             this.handleAnswer(answer);
         });
 
+        this._socket.on(SOCKET_EVENTS.ICE_CANDIDATE, (payload: IIcePayload) => {
+            this.handleIceCandidate(payload);
+        });
 
     }
 
@@ -54,7 +62,14 @@ export class SignalHandler implements ISignalHandler {
         this._socket.to(partnerUser).emit(SOCKET_EVENTS.ANSWER, answer);
     }
 
+    private handleIceCandidate(payload: IIcePayload): void {
+        const room = this._roomManager.getRoom(payload.roomId);
+        if (!room) return;
 
+        const partnerUser = this._roomManager.getUser2(payload.roomId, this._socket.id);
+        if (!partnerUser) return;
 
+        this._socket.to(partnerUser).emit(SOCKET_EVENTS.ICE_CANDIDATE, payload);
+    }
 
 }

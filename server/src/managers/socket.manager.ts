@@ -3,6 +3,7 @@ import { RoomHandler } from "../handlers/room.handler";
 import { SignalHandler } from "../handlers/signal.handler";
 import { UserManager } from "./user.manager";
 import { RoomManager } from "./room.manager";
+import { SOCKET_EVENTS } from "../contants/socket.events.constants";
 
 
 
@@ -40,7 +41,8 @@ export class SocketManager {
             console.log("Socket connected- ", socket.id);
 
 
-            const roomHandler = new RoomHandler(this._roomManager, this._userManager, socket);
+            new RoomHandler(this._roomManager, this._userManager, socket);
+
             const signalHandler = new SignalHandler(socket, this._roomManager);
 
 
@@ -50,16 +52,25 @@ export class SocketManager {
                 roomId: null
             });
 
-            roomHandler.registerEvents();
             signalHandler.registerEvents();
 
 
             socket.on("disconnect", () => {
                 const currentUser = this._userManager.getUser(socket.id);
-                if(!currentUser) return;
-                if(!currentUser.roomId) return;
+                if (!currentUser?.roomId) {
+                    this._userManager.removeUser(socket.id);
+                    return;
+                }
+
+                const roomId = currentUser.roomId;
+                const partnerId = this._roomManager.getUser2(roomId, socket.id);
+
+                this._roomManager.leaveRoom(roomId, socket.id);
                 this._userManager.removeUser(socket.id);
-                this._roomManager.leaveRoom(currentUser.roomId, currentUser.id);
+
+                if (partnerId) {
+                    this._io.to(partnerId).emit(SOCKET_EVENTS.LEAVE_ROOM, { roomId });
+                }
             });
 
         });

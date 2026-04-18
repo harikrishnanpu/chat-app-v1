@@ -11,7 +11,7 @@ export class RoomHandler implements IRoomHandler {
     private roomManager: IRoomManager,
     private userManager: IUserManager,
     private socket: Socket
-  ){
+  ) {
     this.registerEvents();
   }
 
