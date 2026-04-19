@@ -34,6 +34,29 @@ export const Landing = () => {
     }
     }
 
+
+    const joinBroadcastRoom = async () => {
+      try {
+
+        const response = await fetch(`${API_URL}/room`, {
+          method: "POST",
+          body: JSON.stringify({ username })
+        });
+  
+        const data = await response.json();
+  
+        if(response.ok) {
+          navigate(`/broadcast/${data.roomId}`);
+        } else {
+          // alert(data.message);
+          console.log(data.message);
+        }
+  
+      }catch(Er){
+        alert(Er)
+      }
+    }
+
   return (
     <div className="flex flex-col items-center justify-center h-screen">
 
@@ -46,6 +69,7 @@ export const Landing = () => {
         Join
       </button>
         <button className="bg-green-500 text-white rounded-md p-2 mt-5 w-full text-center" onClick={createRoom}>Create Room</button>
+        <button className="bg-red-500 text-white rounded-md p-2 mt-5 w-full text-center" onClick={joinBroadcastRoom}>Broadcast Room</button>
         </div>
     </div>
   )
