@@ -11,6 +11,8 @@ export const useBroadcast = () => {
     const deviceRef    = useRef<Device | null>(null);
     const transportRef = useRef(null);
     const localVideoRef = useRef<HTMLVideoElement | null>(null);
+    const otherVideoRef = useRef<HTMLVideoElement | null>(null);
+    const remoteVideoStreamRef = useRef<MediaStream | null>(new MediaStream());
 
     const [isConnected, setIsConnected] = useState(false);
     const [usrRole, setUsrRole] = useState<'viewer' | 'host' | null>(null);
@@ -51,6 +53,8 @@ export const useBroadcast = () => {
             transportRef.current = transport;
 
             transport.on("connect", ({ dtlsParameters }, callback) => {
+                console.log("connect dl,ts transport")
+                console.log(dtlsParameters)
                 socket.emit(SOCKET_EVENTS.BROADCAST_CONNECT_TRANSPORT, {roomId, dtlsParameters}, () => callback());
             });
 
@@ -99,6 +103,11 @@ export const useBroadcast = () => {
         roomId: string,
         existingProducers: { producerId: string; kind: string }[]
     ) => {
+
+        console.log("existingProducers", existingProducers);
+        // return;
+
+
         for (const { producerId } of existingProducers) {
             await consumeStream(socket, roomId, producerId);
         }
@@ -112,10 +121,12 @@ export const useBroadcast = () => {
     const consumeStream = async (
         socket: Socket,
         roomId: string,
-        producerId: string
-        ) => {
+        producerId: string,
+    ) => new Promise<void>  ((resolve) => {
         const device  = deviceRef.current!;
         const transport = transportRef.current!;
+
+        
 
         socket.emit(
             SOCKET_EVENTS.BROADCAST_CONSUME,
@@ -128,18 +139,40 @@ export const useBroadcast = () => {
 
                 if(!params.ok){
                     console.log("consume error from server")
+                    resolve();
                     return;
                 }
 
-                const consumer = await transport.consume(params);
+                const consumer = await transport.consume({
+                    id: params.id,
+                    producerId: params.producerId,
+                    kind: params.kind,
+                    rtpParameters: params.rtpParameters,
+                  });
+
+                console.log("consumer", consumer.track.readyState);
+                console.log("consumer", consumer.track.enabled);
+
+                console.log("consume success from server", consumer);
+
+                remoteVideoStreamRef.current!.addTrack(consumer.track);
+
+                if (otherVideoRef.current) {
+                    otherVideoRef.current.srcObject = remoteVideoStreamRef.current;
+                }
+
+            
 
                 socket.emit(SOCKET_EVENTS.BROADCAST_RESUME, {
                     roomId,
-                    consumerId: consumer.id,
-                });
+                    consumerId: params.id,
+                }, ()=> {
+                    console.log("resume success from server");
+                    resolve();
+                });                
             }
         );
-    };
+    });
 
 
 
@@ -156,7 +189,7 @@ export const useBroadcast = () => {
 
             const username = prompt("Enter your username");
 
-            socket.emit(SOCKET_EVENTS.JOIN_BROADCAST_ROOM, roomId, username, async (data: any) => {
+            socket.emit(SOCKET_EVENTS.JOIN_BROADCAST_ROOM, roomId, username, async (data) => {
                 if (!data?.ok) return console.error(data.error);
 
                 setUsrRole(data.role);
@@ -172,5 +205,5 @@ export const useBroadcast = () => {
     }, [roomId]);
 
 
-    return { isConnected, usrRole, localVideoRef };
+    return { isConnected, usrRole, localVideoRef, otherVideoRef };
 };
