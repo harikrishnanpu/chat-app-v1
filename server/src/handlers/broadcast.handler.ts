@@ -40,7 +40,7 @@ export class BroadcastHandler {
         });
 
         this._socket.on(SOCKET_EVENTS.BROADCAST_CONNECT_TRANSPORT, async ({roomId, dtlsParameters}: {roomId: string, dtlsParameters: any}, callback : (data: any) => {}) => {
-            console.log('Connect transport: ', roomId);
+            console.log('Connect transport: ', roomId, dtlsParameters);
             await this.connectTransport({roomId, dtlsParameters}, callback);
         });
 
@@ -88,10 +88,18 @@ export class BroadcastHandler {
                 return;
             }
 
-            const transport = await this._mediasoupManager.createTransport(broadcastRoom.router);
             const producers = this._broadcastManager.getProducers(roomId);
 
-            // console.log('Producers: ', producers);
+            const modifiedProducers = producers.map(producer => {
+                return {
+                    producerId: producer.id,
+                    kind: producer.kind,
+                    rtpParameters: producer.rtpParameters
+                }
+            });
+
+            console.log('Producers: ', producers);
+            // return;
 
             console.log('Broadcast room users: ', broadcastRoom.users.size);
 
@@ -101,14 +109,14 @@ export class BroadcastHandler {
                 isHost = true;
             }
 
-            this._broadcastManager.joinBroadcastRoom(roomId, this._socket.id, username, isHost ? 'host' : 'viewer', transport, producers, []);
+            this._broadcastManager.joinBroadcastRoom(roomId, this._socket.id, username, isHost ? 'host' : 'viewer', null, [], []);
             this._socket.join(roomId);
 
             callback({ 
                 ok: true, 
                 role: isHost ? 'host' : 'viewer',
                 roomId,
-                existingProducers: producers,
+                existingProducers: modifiedProducers,
                 rtpCapabilities: broadcastRoom.router.rtpCapabilities
             });
 
@@ -149,15 +157,17 @@ export class BroadcastHandler {
     async createTransport(roomId: string, callback : (data: any) => {}): Promise<void> {
         const broadcastRoom = this._broadcastManager.getBroadcastRoom(roomId);
 
-        if(!broadcastRoom) {
+        if(!broadcastRoom || !broadcastRoom.users.get(this._socket.id)) {
             callback({
                 ok: false,
-                message: 'Broadcast room not found'
+                message: 'Broadcast room not found | user'
             });
             return;
         }
 
         const transport = await this._mediasoupManager.createTransport(broadcastRoom.router);
+        broadcastRoom.users.get(this._socket.id)!.transport = transport;
+
         callback({
             ok: true,
             params: {
@@ -191,7 +201,7 @@ export class BroadcastHandler {
         }
 
 
-        transport.connect(dtlsParameters);
+        transport.connect({dtlsParameters});
         callback({
             ok: true,
             id: transport.id
@@ -222,6 +232,7 @@ export class BroadcastHandler {
 
 
         const producer = await transport.produce({ kind: kind as MediaKind, rtpParameters });
+        broadcastRoom.users.get(this._socket.id)?.producers.push(producer);
         callback({
             ok: true,
             id: producer.id
@@ -250,10 +261,14 @@ export class BroadcastHandler {
         }
 
         const consumer = await transport.consume({ producerId, rtpCapabilities });
+        broadcastRoom.users.get(this._socket.id)?.consumers.push(consumer);
 
         callback({
             ok: true,
-            id: consumer.id
+            id: consumer.id,
+            producerId: producerId,
+            kind: consumer.kind,
+            rtpParameters: consumer.rtpParameters
         });
     }
 

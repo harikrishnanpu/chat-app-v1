@@ -16,23 +16,27 @@ export class SocketManager {
     private static _instance: SocketManager;
     private _roomManager: RoomManager;
     private _userManager: UserManager;
+    private _broadcastManager: BroadcastManager;
 
 
     private constructor(
-        private _io: Server
+        private _io: Server,
+        private _mediasoupManager: MediasoupManager
     ){
 
         this._roomManager =  new RoomManager();
         this._userManager = new UserManager()
+        this._broadcastManager = new BroadcastManager();
+
 
        this._init();
     }
 
     // --singleton --
-    public static getInstance(io: Server): SocketManager {
+    public static getInstance(io: Server, mediaSoupeInstance: MediasoupManager): SocketManager {
         if(!SocketManager._instance) {
             console.log("SocketManager initialised -- ");
-            SocketManager._instance = new SocketManager(io);
+            SocketManager._instance = new SocketManager(io, mediaSoupeInstance);
         }
         return SocketManager._instance;
     }
@@ -41,15 +45,9 @@ export class SocketManager {
 
         this._io.on("connection", async (socket: Socket) => {
 
-            console.log("Socket connected- ", socket.id);
-
-
-             const broadcastManager = new BroadcastManager();
-             const mediasoupManager = MediasoupManager.getInstance();
-             await mediasoupManager.init();
+            console.log("Socket connected- ", socket.id);            
             
-            
-             const broadcastHandler = new BroadcastHandler(broadcastManager, mediasoupManager, socket);
+             const broadcastHandler = new BroadcastHandler(this._broadcastManager, this._mediasoupManager , socket);
 
             new RoomHandler(this._roomManager, this._userManager, socket);
 

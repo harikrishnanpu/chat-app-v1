@@ -60,9 +60,9 @@ export class BroadcastManager {
         return Array.from(broadcastRoom.users.values()).filter(user => user.role === 'viewer');
     }
 
-    getProducers(userId: string): any[] {
-        const broadcastRoom = this.broadcast_rooms.get(userId);
+    getProducers(roomId: string): any[] {
+        const broadcastRoom = this.broadcast_rooms.get(roomId);
         if(!broadcastRoom) return [];
-        return Array.from(broadcastRoom.users.values()).filter(user => user.isEnabledToSpeak ).map(user => user.producers);
+        return Array.from(broadcastRoom.users.values()).flatMap(user => user.producers);
     }
 }

@@ -3,6 +3,7 @@ import http from "node:http";
 import { SocketManager } from "./managers/socket.manager";
 import { Server } from "socket.io";
 import cors from "cors";
+import { MediasoupManager } from "./managers/mediaSoupmanager";
 
 const app = express();
 app.use(cors());
@@ -14,9 +15,9 @@ const io = new Server(server,{
     }
 });
 
-
-
-SocketManager.getInstance(io);
+const mediasoupManager = MediasoupManager.getInstance();
+mediasoupManager.init();
+SocketManager.getInstance(io, mediasoupManager);
  
 app.get("/", (req, res) => {
     res.send("Hello World");
