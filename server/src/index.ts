@@ -17,7 +17,6 @@ const io = new Server(server,{
 
 
 SocketManager.getInstance(io);
-
  
 app.get("/", (req, res) => {
     res.send("Hello World");
@@ -28,6 +27,12 @@ app.post("/room", (req, res) => {
     const roomId = Math.floor(Math.random() * 1000000);
     res.json({ roomId: roomId.toString() });
 });
+
+app.post("/broadcast", (req,res) => {
+    console.log(req.body);
+    const roomId = Math.floor(Math.random() * 1000000);
+    res.json({ roomId: roomId.toString() });
+})
 
 
 server.listen(3000, () => {

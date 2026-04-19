@@ -4,6 +4,9 @@ import { SignalHandler } from "../handlers/signal.handler";
 import { UserManager } from "./user.manager";
 import { RoomManager } from "./room.manager";
 import { SOCKET_EVENTS } from "../contants/socket.events.constants";
+import { BroadcastManager } from "./broadcast.manager";
+import { BroadcastHandler } from "../handlers/broadcast.handler";
+import { MediasoupManager } from "./mediaSoupmanager";
 
 
 
@@ -36,10 +39,17 @@ export class SocketManager {
 
     private _init(): void {
 
-        this._io.on("connection", (socket: Socket) => {
+        this._io.on("connection", async (socket: Socket) => {
 
             console.log("Socket connected- ", socket.id);
 
+
+             const broadcastManager = new BroadcastManager();
+             const mediasoupManager = MediasoupManager.getInstance();
+             await mediasoupManager.init();
+            
+            
+             const broadcastHandler = new BroadcastHandler(broadcastManager, mediasoupManager, socket);
 
             new RoomHandler(this._roomManager, this._userManager, socket);
 
@@ -57,10 +67,15 @@ export class SocketManager {
 
             socket.on("disconnect", () => {
                 const currentUser = this._userManager.getUser(socket.id);
+
+                broadcastHandler.leaveBroadcastRoom();
+
                 if (!currentUser?.roomId) {
                     this._userManager.removeUser(socket.id);
                     return;
                 }
+
+
 
                 const roomId = currentUser.roomId;
                 const partnerId = this._roomManager.getUser2(roomId, socket.id);
