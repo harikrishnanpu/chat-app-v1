@@ -56,6 +56,12 @@ export const Landing = () => {
         alert(Er)
       }
     }
+  
+  
+  
+  const goToChat = () => {
+    navigate('/chat');
+  }
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
@@ -70,6 +76,7 @@ export const Landing = () => {
       </button>
         <button className="bg-green-500 text-white rounded-md p-2 mt-5 w-full text-center" onClick={createRoom}>Create Room</button>
         <button className="bg-red-500 text-white rounded-md p-2 mt-5 w-full text-center" onClick={joinBroadcastRoom}>Broadcast Room</button>
+        <button className="bg-black text-white rounded-md p-2 mt-5 w-full text-center" onClick={goToChat}>Go to chat</button>
         </div>
     </div>
   )

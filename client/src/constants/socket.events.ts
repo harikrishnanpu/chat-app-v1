@@ -21,4 +21,7 @@ export const SOCKET_EVENTS = {
     BROADCAST_PRODUCE: "broadcast:produce",
     BROADCAST_CONSUME: "broadcast:consume",
     BROADCAST_RESUME: "broadcast:resume",
+
+    CHAT_SEND_MESSAGE: "chat:send-message",
+    CHAT_MESSAGE_RECEIVED: "chat:message-received",
 }   

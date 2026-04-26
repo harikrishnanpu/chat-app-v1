@@ -7,6 +7,7 @@ import { SOCKET_EVENTS } from "../contants/socket.events.constants";
 import { BroadcastManager } from "./broadcast.manager";
 import { BroadcastHandler } from "../handlers/broadcast.handler";
 import { MediasoupManager } from "./mediaSoupmanager";
+import { ChatHandler } from "../handlers/chat.handler";
 
 
 
@@ -48,6 +49,7 @@ export class SocketManager {
             console.log("Socket connected- ", socket.id);            
             
              const broadcastHandler = new BroadcastHandler(this._broadcastManager, this._mediasoupManager , socket);
+             new ChatHandler(this._io, socket);
 
             new RoomHandler(this._roomManager, this._userManager, socket);
 
