@@ -33,7 +33,7 @@ export class BroadcastHandler {
             console.log('Get capabilities: ', roomId);
             await this.getCapabilities(roomId, callback);
         });
-
+ 
         this._socket.on(SOCKET_EVENTS.BROADCAST_CREATE_TRANSPORT, async (roomId: string, callback : (data: any) => {}) => {
             console.log('Create transport: ', roomId);
             await this.createTransport(roomId, callback);

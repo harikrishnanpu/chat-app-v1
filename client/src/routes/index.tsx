@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router";
 import { Landing } from "../pages/Landing";
 import { Room } from "../pages/Room";
 import { Broadcast } from "../pages/Broadcast";
-    
+import { Chat } from "../pages/ChatPage";
 
 export const router = createBrowserRouter([
     {
@@ -16,6 +16,10 @@ export const router = createBrowserRouter([
     {
       path: '/broadcast/:roomId',
       element: <Broadcast /> ,
+  },
+  {
+    path: '/chat',
+    element: <Chat />,
     }
 ]);
   
